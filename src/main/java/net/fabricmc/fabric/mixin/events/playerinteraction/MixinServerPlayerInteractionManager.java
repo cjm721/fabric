@@ -91,7 +91,7 @@ public class MixinServerPlayerInteractionManager {
 
 	@Inject(at = @At("HEAD"), method = "destroyBlock", cancellable = true)
 	public void destroyBlock(BlockPos blockPos, CallbackInfoReturnable<Boolean> info) {
-		Direction direction = blockPos.equals(lastBlockHitDirection) && lastBlockHitDirection != null ? lastBlockHitDirection : null;
+		Direction direction = blockPos.equals(lastBlockHitPosition) && lastBlockHitDirection != null ? lastBlockHitDirection : null;
 
 		for (PlayerInteractionEvent.Block consumer : ((HandlerArray<PlayerInteractionEvent.Block>)PlayerInteractionEvent.BREAK_BLOCK).getBackingArray()) {
 			ActionResult result = consumer.interact(player,world,player.getActiveHand(),blockPos, direction);
@@ -104,6 +104,7 @@ public class MixinServerPlayerInteractionManager {
 			}
 		}
 
+		lastBlockHitPosition = null;
 		lastBlockHitDirection = null;
 	}
 }
