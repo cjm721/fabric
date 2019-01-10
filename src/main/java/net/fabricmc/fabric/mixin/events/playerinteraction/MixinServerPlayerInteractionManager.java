@@ -18,6 +18,7 @@ package net.fabricmc.fabric.mixin.events.playerinteraction;
 
 import net.fabricmc.fabric.events.PlayerInteractionEvent;
 import net.fabricmc.fabric.util.HandlerArray;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.network.packet.BlockUpdateClientPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -42,8 +43,14 @@ public class MixinServerPlayerInteractionManager {
 	@Shadow
 	public ServerPlayerEntity player;
 
+	private BlockPos lastBlockHitPosition;
+	private Direction lastBlockHitDirection;
+
 	@Inject(at = @At("HEAD"), method = "method_14263", cancellable = true)
 	public void startBlockBreak(BlockPos pos, Direction direction, CallbackInfo info) {
+		this.lastBlockHitPosition = pos;
+	    this.lastBlockHitDirection = direction;
+
 		for (PlayerInteractionEvent.Block handler : ((HandlerArray<PlayerInteractionEvent.Block>) PlayerInteractionEvent.ATTACK_BLOCK).getBackingArray()) {
 			ActionResult result = handler.interact(player, world, Hand.MAIN, pos, direction);
 			if (result != ActionResult.PASS) {
@@ -57,6 +64,8 @@ public class MixinServerPlayerInteractionManager {
 
 	@Inject(at = @At("HEAD"), method = "interactBlock", cancellable = true)
 	public void interactBlock(PlayerEntity player, World world, ItemStack stack, Hand hand, BlockPos pos, Direction direction, float hitX, float hitY, float hitZ, CallbackInfoReturnable<ActionResult> info) {
+        this.lastBlockHitDirection = direction;
+
 		for (PlayerInteractionEvent.BlockPositioned handler : ((HandlerArray<PlayerInteractionEvent.BlockPositioned>) PlayerInteractionEvent.INTERACT_BLOCK).getBackingArray()) {
 			ActionResult result = handler.interact(player, world, hand, pos, direction, hitX, hitY, hitZ);
 			if (result != ActionResult.PASS) {
@@ -77,5 +86,23 @@ public class MixinServerPlayerInteractionManager {
 				return;
 			}
 		}
+	}
+
+	@Inject(at = @At("HEAD"), method = "destroyBlock", cancellable = true)
+	public void destroyBlock(BlockPos blockPos, CallbackInfoReturnable<Boolean> info) {
+		Direction direction = blockPos.equals(lastBlockHitDirection) && lastBlockHitDirection != null ? lastBlockHitDirection : null;
+
+		for (PlayerInteractionEvent.Block consumer : ((HandlerArray<PlayerInteractionEvent.Block>)PlayerInteractionEvent.BREAK_BLOCK).getBackingArray()) {
+			ActionResult result = consumer.interact(player,world,player.getActiveHand(),blockPos, direction);
+			if(result != ActionResult.PASS) {
+				// The client might have broken the block on its side, so make sure to let it know.
+				this.player.networkHandler.sendPacket(new BlockUpdateClientPacket(world, blockPos));
+				info.setReturnValue(false);
+				info.cancel();
+				return;
+			}
+		}
+
+		lastBlockHitDirection = null;
 	}
 }

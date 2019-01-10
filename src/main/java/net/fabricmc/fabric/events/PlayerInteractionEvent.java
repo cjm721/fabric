@@ -103,12 +103,16 @@ public final class PlayerInteractionEvent {
 	 */
 	public static final HandlerRegistry<Item> INTERACT_ITEM = new HandlerArray<>(Item.class);
 
+
 	/**
-	 * @deprecated Use {@link #ATTACK_BLOCK ATTACK_BLOCK} instead.
+	 * Event emitted when a player attempts to break a block.
+	 *
+	 * <p>Developer note: This is fired after {@link #ATTACK_BLOCK} on server side if it is not canceled
+	 * Returning anything other then {@link ActionResult#PASS} will cause no more listeners
+	 * to be called. If {@link ActionResult#FAILURE} is returned the block will not be broken.
+	 * Direction may be null if for some reason ATTACK_BLOCK was not triggered.
 	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public static final HandlerRegistry<Block> BREAK_BLOCK = ATTACK_BLOCK;
+	public static final HandlerRegistry<Block> BREAK_BLOCK = new HandlerArray<>(Block.class);
 
 	private PlayerInteractionEvent() {
 
