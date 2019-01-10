@@ -49,7 +49,7 @@ public class MixinServerPlayerInteractionManager {
 	@Inject(at = @At("HEAD"), method = "method_14263", cancellable = true)
 	public void startBlockBreak(BlockPos pos, Direction direction, CallbackInfo info) {
 		this.lastBlockHitPosition = pos;
-	    this.lastBlockHitDirection = direction;
+		this.lastBlockHitDirection = direction;
 
 		for (PlayerInteractionEvent.Block handler : ((HandlerArray<PlayerInteractionEvent.Block>) PlayerInteractionEvent.ATTACK_BLOCK).getBackingArray()) {
 			ActionResult result = handler.interact(player, world, Hand.MAIN, pos, direction);
@@ -64,7 +64,7 @@ public class MixinServerPlayerInteractionManager {
 
 	@Inject(at = @At("HEAD"), method = "interactBlock", cancellable = true)
 	public void interactBlock(PlayerEntity player, World world, ItemStack stack, Hand hand, BlockPos pos, Direction direction, float hitX, float hitY, float hitZ, CallbackInfoReturnable<ActionResult> info) {
-        this.lastBlockHitDirection = direction;
+		this.lastBlockHitDirection = direction;
 
 		for (PlayerInteractionEvent.BlockPositioned handler : ((HandlerArray<PlayerInteractionEvent.BlockPositioned>) PlayerInteractionEvent.INTERACT_BLOCK).getBackingArray()) {
 			ActionResult result = handler.interact(player, world, hand, pos, direction, hitX, hitY, hitZ);
