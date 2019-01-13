@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class HandlerArray<T> implements HandlerRegistry<T> {
 	private T[] array;
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public HandlerArray(Class<T> theClass) {
 		this.array = (T[]) Array.newInstance(theClass, 0);
 	}
